@@ -1,8 +1,12 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import todo_icon from "../assets/todo_icon.png";
 import TodoItems from "./TodoItems";
 const Todo = () => {
-  const [todoList, setToDoList] = useState([]);
+  const [todoList, setToDoList] = useState(
+    localStorage.getItem("toDos")
+      ? JSON.parse(localStorage.getItem("toDos"))
+      : []
+  );
   const inputRef = useRef();
   const addItems = () => {
     const inputText =
@@ -20,6 +24,31 @@ const Todo = () => {
     /* Clearing the input field */
     inputRef.current.value = "";
   };
+
+  /* This checks for each To-do item if their id is = the current id  to delete that to-do list*/
+  const deleteToDo = (id) => {
+    setToDoList((previousToDos) => {
+      return previousToDos.filter((todo) => todo.id !== id);
+    });
+  };
+
+  const toggle = (id) => {
+    setToDoList((previousToDos) => {
+      return previousToDos.map((todo) => {
+        /** returns the individual todo items for which we have provided the id */
+        if (todo.id === id) {
+          return { ...todo, isComplete: !todo.isComplete };
+        }
+        return todo;
+      });
+    });
+  };
+
+  /** To check if the completed to-do list is completed or not */
+  useEffect(() => {
+    localStorage.setItem("toDos", JSON.stringify(todoList));
+  }, [todoList]);
+
   return (
     <div className="bg-white place-self-center w-11/12 max-w-md flex flex-col p-7 min-h-[550px] rounded-xl">
       {/* =============== title =============== */}
@@ -46,8 +75,18 @@ const Todo = () => {
 
       {/* =============== todo-list =============== */}
       <div>
-        <TodoItems text="Learn Coding" />
-        <TodoItems text="Learn Coding from me" />
+        {todoList.map((item, index) => {
+          return (
+            <TodoItems
+              key={index}
+              text={item.text}
+              id={item.id}
+              isComplete={item.isComplete}
+              deleteToDo={deleteToDo}
+              toggle={toggle}
+            />
+          );
+        })}
       </div>
     </div>
   );
